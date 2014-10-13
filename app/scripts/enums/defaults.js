@@ -16,13 +16,14 @@ PhonicsApp.config(['$provide', function ($provide) {
     examplesFolder: '/spec-files/',
     exampleFiles: ['default.yaml', 'minimal.yaml', 'heroku-pets.yaml', 'petstore.yaml'],
     backendEndpoint: '/editor/spec',
-    useBackendForStorage: false,
     backendHelathCheckTimeout: 5000,
-    disableFileMenu: false,
+    useBackendForStorage: true,
+    disableFileMenu: true,
     disableCodeGen: true,
-    useYamlBackend: false,
-    headerBranding: false,
-    brandingCssClass: ''
+    disableNewUserIntro: true,
+    useYamlBackend: true,
+    headerBranding: true,
+    brandingCssClass: 'swagger-complete'
   }
   // END-DEFAULTS-JSON
 
