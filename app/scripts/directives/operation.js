@@ -1,6 +1,6 @@
 'use strict';
 
-PhonicsApp.directive('operation', [function () {
+PhonicsApp.directive('operation', function () {
   return {
     restrict: 'E',
     replace: true,
@@ -13,4 +13,4 @@ PhonicsApp.directive('operation', [function () {
       };
     }
   };
-}]);
+});
