@@ -21,6 +21,7 @@ PhonicsApp.config(['$provide', function ($provide) {
     backendHelathCheckTimeout: 5000,
     useYamlBackend: true,
 
+    disableNewUserIntro: true,
     disableFileMenu: true,
     headerBranding: false,
     brandingCssClass: '',
