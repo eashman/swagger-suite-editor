@@ -1,6 +1,41 @@
 {
-  "name": "Phonics",
-  "version": "0.0.0",
+  "name": "swagger-suite-editor",
+  "version": "0.0.1",
+  "description": "A build of Swagger-Editor specifically for Swagger-Suite",
+  "keywords": [
+    "rest",
+    "json",
+    "yaml",
+    "api",
+    "spec",
+    "specification",
+    "contract",
+    "schema",
+    "editor",
+    "docs",
+    "documentation",
+    "swagger"
+  ],
+  "main": "dist/index.html",
+  "license": "Apache 2.0",
+  "homepage": "https://github.com/wordnik/swagger-editor",
+  "ignore": [
+    "*.*",
+    "Dockerfile",
+    ".tmp",
+    "app",
+    "docs",
+    "grunt",
+    "node_modules",
+    "bower_components",
+    "scripts",
+    "test",
+    "!dist",
+    "!.bowerrc",
+    "!bower.json",
+    "!LICENSE",
+    "!README.md"
+  ],
   "devDependencies": {
     "angular": "1.2.15",
     "angular-bootstrap": "~0.11.0",
@@ -20,11 +55,11 @@
     "lodash": "~2.4.1",
     "ngstorage": "~0.3.0",
     "tv4": "~1.0.17",
-    "yaml-js": "mohsen1/yaml-js"
-  },
-  "dependencies": {
+    "yaml-js": "mohsen1/yaml-js",
     "json-formatter": "~0.2.2",
     "angular-ui-layout": "bower",
     "json-schema-view": "~0.3.7"
+  },
+  "dependencies": {
   }
 }

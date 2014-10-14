@@ -4,9 +4,9 @@ node_modules/grunt-newer/.cache
 .sass-cache
 .grunt
 npm-debug.log
-dist/
 node_modules
 app/bower_components
 *.sublime-workspace
 .*.swp
 buttons.diff
+.idea
