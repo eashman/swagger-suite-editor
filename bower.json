@@ -1,6 +1,6 @@
 {
   "name": "swagger-suite-editor",
-  "version": "2.6.25",
+  "version": "2.6.26",
   "description": "A build of Swagger-Editor specifically for Swagger-Suite",
   "keywords": [
     "rest",
@@ -20,19 +20,20 @@
   "license": "Apache 2.0",
   "homepage": "https://github.com/wordnik/swagger-editor",
   "ignore": [
-    ".tmp",
-    "app",
-    "docs",
-    "grunt",
-    "node_modules",
-    "bower_components",
-    "scripts",
-    "test",
-    "!dist",
-    "!.bowerrc",
-    "!bower.json",
-    "!LICENSE",
-    "!README.md"
+    "/.*",
+    "/*.*",
+    "/.tmp",
+    "/app",
+    "/docs",
+    "/grunt",
+    "/node_modules",
+    "/scripts",
+    "/test",
+    "!/dist",
+    "!/.bowerrc",
+    "!/bower.json",
+    "!/LICENSE",
+    "!/README.md"
   ],
   "devDependencies": {
     "angular": "1.2.15",
