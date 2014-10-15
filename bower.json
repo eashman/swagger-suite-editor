@@ -1,6 +1,6 @@
 {
   "name": "swagger-suite-editor",
-  "version": "2.6.25-a",
+  "version": "2.6.25-b",
   "description": "A build of Swagger-Editor specifically for Swagger-Suite",
   "keywords": [
     "rest",
@@ -58,6 +58,5 @@
     "angular-ui-layout": "bower",
     "json-schema-view": "~0.3.7"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
