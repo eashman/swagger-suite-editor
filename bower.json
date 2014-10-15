@@ -1,6 +1,6 @@
 {
   "name": "swagger-suite-editor",
-  "version": "2.6.24",
+  "version": "2.6.24-a",
   "description": "A build of Swagger-Editor specifically for Swagger-Suite",
   "keywords": [
     "rest",
@@ -20,8 +20,6 @@
   "license": "Apache 2.0",
   "homepage": "https://github.com/wordnik/swagger-editor",
   "ignore": [
-    "*.*",
-    "Dockerfile",
     ".tmp",
     "app",
     "docs",
