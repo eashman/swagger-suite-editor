@@ -26,9 +26,13 @@ PhonicsApp.service('Editor', function Editor() {
     // Assign class variable `editor`
     window.e = editor = e;
 
+    ace.config.set('basePath', '/bower_components/ace-builds/src-noconflict');
+
     // Set editor options
     editor.setOptions({
-      fontFamily: 'Source Code Pro'
+      fontFamily: 'Source Code Pro',
+      enableBasicAutocompletion: true,
+      enableLiveAutocompletion: true
     });
 
     // Editor is ready, fire the on-ready function and flush the queue
@@ -57,7 +61,7 @@ PhonicsApp.service('Editor', function Editor() {
   }
 
   function setValue(value) {
-    if (angular.isString(value)) {
+    if (angular.isString(value) && editor) {
       editor.getSession().setValue(value);
     }
 
@@ -68,7 +72,9 @@ PhonicsApp.service('Editor', function Editor() {
   }
 
   function getValue() {
-    return editor.getSession().getValue();
+    if (editor) {
+      return editor.getSession().getValue();
+    }
   }
 
   function resize() {
@@ -100,14 +106,18 @@ PhonicsApp.service('Editor', function Editor() {
   }
 
   function addFold(start, end) {
-    editor.getSession().foldAll(start, end);
+    if (editor) {
+      editor.getSession().foldAll(start, end);
+    }
   }
 
   function removeFold(start) {
     // TODO: Depth of unfolding is hard-coded to 100 but we need
     // to have depth as a parameter and/or having smarter way of
     // handling subfolds
-    editor.getSession().unfold(start, 100);
+    if (editor) {
+      editor.getSession().unfold(start, 100);
+    }
   }
 
   function gotoLine(line) {

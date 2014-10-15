@@ -4,6 +4,7 @@ PhonicsApp.config( ['$provide', function ($provide) {
 // Scheme JSON:
 {
   "title": "A JSON Schema for Swagger 2.0 API.",
+  "id": "http://swagger.io/v2/schema.json#",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "required": [
@@ -31,7 +32,7 @@ PhonicsApp.config( ['$provide', function ($provide) {
     "host": {
       "type": "string",
       "format": "uri",
-      "pattern": "^((?!\\://).)*$",
+      "pattern": "^[^{}/ :\\\\]+(?::\\d+)?$",
       "description": "The fully qualified URI to the host of the API."
     },
     "basePath": {
@@ -65,11 +66,15 @@ PhonicsApp.config( ['$provide', function ($provide) {
     "security": {
       "$ref": "#/definitions/security"
     },
+    "securityDefinitions": {
+      "$ref": "#/definitions/securityDefinitions"
+    },
     "tags": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/tag"
-      }
+      },
+      "uniqueItems": true
     },
     "externalDocs": {
       "$ref": "#/definitions/externalDocs"
@@ -107,43 +112,49 @@ PhonicsApp.config( ['$provide', function ($provide) {
           "description": "The terms of service for the API."
         },
         "contact": {
-          "type": "object",
-          "description": "Contact information for the owners of the API.",
-          "additionalProperties": false,
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "The identifying name of the contact person/organization."
-            },
-            "url": {
-              "type": "string",
-              "description": "The URL pointing to the contact information.",
-              "format": "uri"
-            },
-            "email": {
-              "type": "string",
-              "description": "The email address of the contact person/organization.",
-              "format": "email"
-            }
-          }
+          "$ref": "#/definitions/contact"
         },
         "license": {
-          "type": "object",
-          "required": [
-            "name"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "The name of the license type. It's encouraged to use an OSI compatible license."
-            },
-            "url": {
-              "type": "string",
-              "description": "The URL pointing to the license.",
-              "format": "uri"
-            }
-          }
+          "$ref": "#/definitions/license"
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "description": "Contact information for the owners of the API.",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The identifying name of the contact person/organization."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL pointing to the contact information.",
+          "format": "uri"
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the contact person/organization.",
+          "format": "email"
+        }
+      }
+    },
+    "license": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the license type. It's encouraged to use an OSI compatible license."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL pointing to the license.",
+          "format": "uri"
         }
       }
     },
@@ -154,7 +165,7 @@ PhonicsApp.config( ['$provide', function ($provide) {
         "^x-": {
           "$ref": "#/definitions/vendorExtension"
         },
-        "^/.*[^/]$": {
+        "^/": {
           "$ref": "#/definitions/pathItem"
         }
       },
@@ -162,24 +173,24 @@ PhonicsApp.config( ['$provide', function ($provide) {
     },
     "definitions": {
       "type": "object",
-      "description": "One or more JSON objects describing the schemas being consumed and produced by the API.",
       "additionalProperties": {
         "$ref": "#/definitions/schema"
-      }
+      },
+      "description": "One or more JSON objects describing the schemas being consumed and produced by the API."
     },
     "parameterDefinitions": {
       "type": "object",
-      "description": "One or more JSON representations for parameters",
       "additionalProperties": {
         "$ref": "#/definitions/parameter"
-      }
+      },
+      "description": "One or more JSON representations for parameters"
     },
     "responseDefinitions": {
       "type": "object",
-      "description": "One or more JSON representations for parameters",
       "additionalProperties": {
         "$ref": "#/definitions/response"
-      }
+      },
+      "description": "One or more JSON representations for parameters"
     },
     "externalDocs": {
       "type": "object",
@@ -198,7 +209,7 @@ PhonicsApp.config( ['$provide', function ($provide) {
         }
       }
     },
-    "example": {
+    "examples": {
       "type": "object",
       "patternProperties": {
         "^[a-z0-9-]+/[a-z0-9\\-+]+$": {}
@@ -266,7 +277,7 @@ PhonicsApp.config( ['$provide', function ($provide) {
           "default": false
         },
         "security": {
-          "$ref": "#/definitions/securityRequirement"
+          "$ref": "#/definitions/security"
         }
       }
     },
@@ -314,11 +325,20 @@ PhonicsApp.config( ['$provide', function ($provide) {
       "minProperties": 1,
       "additionalProperties": false,
       "patternProperties": {
-        "^([0-9]+)$|^(default)$": {
+        "^([0-9]{3})$|^(default)$": {
           "$ref": "#/definitions/responseValue"
         },
         "^x-": {
           "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "not": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x-": {
+            "$ref": "#/definitions/vendorExtension"
+          }
         }
       }
     },
@@ -328,13 +348,7 @@ PhonicsApp.config( ['$provide', function ($provide) {
           "$ref": "#/definitions/response"
         },
         {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "$ref": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/jsonReference"
         }
       ]
     },
@@ -354,7 +368,7 @@ PhonicsApp.config( ['$provide', function ($provide) {
           "$ref": "#/definitions/headers"
         },
         "examples": {
-          "$ref": "#/definitions/example"
+          "$ref": "#/definitions/examples"
         }
       },
       "additionalProperties": false
@@ -368,6 +382,9 @@ PhonicsApp.config( ['$provide', function ($provide) {
     "header": {
       "type": "object",
       "additionalProperties": false,
+      "required": [
+        "type"
+      ],
       "properties": {
         "type": {
           "type": "string",
@@ -467,13 +484,369 @@ PhonicsApp.config( ['$provide', function ($provide) {
         },
         "required": {
           "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional."
+          "description": "Determines whether or not this parameter is required or optional.",
+          "default": false
         },
         "schema": {
           "$ref": "#/definitions/schema"
         }
       },
       "additionalProperties": false
+    },
+    "headerParameterSubSchema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "description": "Determines whether or not this parameter is required or optional.",
+          "default": false
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "header"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "array"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormat"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      }
+    },
+    "queryParameterSubSchema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "description": "Determines whether or not this parameter is required or optional.",
+          "default": false
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "query"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "array"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormatWithMulti"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      }
+    },
+    "formDataParameterSubSchema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "description": "Determines whether or not this parameter is required or optional.",
+          "default": false
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "formData"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "array",
+            "file"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormatWithMulti"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      }
+    },
+    "pathParameterSubSchema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "enum": [
+            true
+          ],
+          "description": "Determines whether or not this parameter is required or optional."
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "path"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "array"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormat"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      }
     },
     "nonBodyParameter": {
       "type": "object",
@@ -484,184 +857,16 @@ PhonicsApp.config( ['$provide', function ($provide) {
       ],
       "oneOf": [
         {
-          "additionalProperties": false,
-          "patternProperties": {
-            "^x-": {
-              "$ref": "#/definitions/vendorExtension"
-            }
-          },
-          "properties": {
-            "required": {
-              "type": "boolean",
-              "description": "Determines whether or not this parameter is required or optional."
-            },
-            "in": {
-              "type": "string",
-              "description": "Determines the location of the parameter.",
-              "enum": [
-                "query",
-                "header",
-                "formData"
-              ]
-            },
-            "description": {
-              "type": "string",
-              "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
-            },
-            "name": {
-              "type": "string",
-              "description": "The name of the parameter."
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "string",
-                "number",
-                "boolean",
-                "integer",
-                "array",
-                "file"
-              ]
-            },
-            "format": {
-              "type": "string"
-            },
-            "items": {
-              "$ref": "#/definitions/primitivesItems"
-            },
-            "collectionFormat": {
-              "$ref": "#/definitions/collectionFormat"
-            },
-            "default": {
-              "$ref": "#/definitions/default"
-            },
-            "maximum": {
-              "$ref": "#/definitions/maximum"
-            },
-            "exclusiveMaximum": {
-              "$ref": "#/definitions/exclusiveMaximum"
-            },
-            "minimum": {
-              "$ref": "#/definitions/minimum"
-            },
-            "exclusiveMinimum": {
-              "$ref": "#/definitions/exclusiveMinimum"
-            },
-            "maxLength": {
-              "$ref": "#/definitions/maxLength"
-            },
-            "minLength": {
-              "$ref": "#/definitions/minLength"
-            },
-            "pattern": {
-              "$ref": "#/definitions/pattern"
-            },
-            "maxItems": {
-              "$ref": "#/definitions/maxItems"
-            },
-            "minItems": {
-              "$ref": "#/definitions/minItems"
-            },
-            "uniqueItems": {
-              "$ref": "#/definitions/uniqueItems"
-            },
-            "enum": {
-              "$ref": "#/definitions/enum"
-            },
-            "multipleOf": {
-              "$ref": "#/definitions/multipleOf"
-            }
-          }
+          "$ref": "#/definitions/headerParameterSubSchema"
         },
         {
-          "additionalProperties": false,
-          "patternProperties": {
-            "^x-": {
-              "$ref": "#/definitions/vendorExtension"
-            }
-          },
-          "properties": {
-            "required": {
-              "type": "boolean",
-              "enum": [
-                true
-              ],
-              "description": "Determines whether or not this parameter is required or optional."
-            },
-            "in": {
-              "type": "string",
-              "description": "Determines the location of the parameter.",
-              "enum": [
-                "path"
-              ]
-            },
-            "description": {
-              "type": "string",
-              "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
-            },
-            "name": {
-              "type": "string",
-              "description": "The name of the parameter."
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "string",
-                "number",
-                "boolean",
-                "integer",
-                "array"
-              ]
-            },
-            "format": {
-              "type": "string"
-            },
-            "items": {
-              "$ref": "#/definitions/primitivesItems"
-            },
-            "collectionFormat": {
-              "$ref": "#/definitions/collectionFormat"
-            },
-            "default": {
-              "$ref": "#/definitions/default"
-            },
-            "maximum": {
-              "$ref": "#/definitions/maximum"
-            },
-            "exclusiveMaximum": {
-              "$ref": "#/definitions/exclusiveMaximum"
-            },
-            "minimum": {
-              "$ref": "#/definitions/minimum"
-            },
-            "exclusiveMinimum": {
-              "$ref": "#/definitions/exclusiveMinimum"
-            },
-            "maxLength": {
-              "$ref": "#/definitions/maxLength"
-            },
-            "minLength": {
-              "$ref": "#/definitions/minLength"
-            },
-            "pattern": {
-              "$ref": "#/definitions/pattern"
-            },
-            "maxItems": {
-              "$ref": "#/definitions/maxItems"
-            },
-            "minItems": {
-              "$ref": "#/definitions/minItems"
-            },
-            "uniqueItems": {
-              "$ref": "#/definitions/uniqueItems"
-            },
-            "enum": {
-              "$ref": "#/definitions/enum"
-            },
-            "multipleOf": {
-              "$ref": "#/definitions/multipleOf"
-            }
-          }
+          "$ref": "#/definitions/formDataParameterSubSchema"
+        },
+        {
+          "$ref": "#/definitions/queryParameterSubSchema"
+        },
+        {
+          "$ref": "#/definitions/pathParameterSubSchema"
         }
       ]
     },
@@ -723,27 +928,6 @@ PhonicsApp.config( ['$provide', function ($provide) {
         "pattern": {
           "$ref": "http://json-schema.org/draft-04/schema#/properties/pattern"
         },
-        "discriminator": {
-          "type": "string"
-        },
-        "xml": {
-          "$ref": "#/definitions/xml"
-        },
-        "items": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/schema"
-            },
-            {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "$ref": "#/definitions/schema"
-              }
-            }
-          ],
-          "default": {}
-        },
         "maxItems": {
           "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
         },
@@ -762,8 +946,33 @@ PhonicsApp.config( ['$provide', function ($provide) {
         "required": {
           "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
         },
-        "externalDocs": {
-          "$ref": "#/definitions/externalDocs"
+        "enum": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
+        },
+        "type": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/type"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/schema"
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/schema"
+              }
+            }
+          ],
+          "default": {}
+        },
+        "allOf": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/schema"
+          }
         },
         "properties": {
           "type": "object",
@@ -772,20 +981,20 @@ PhonicsApp.config( ['$provide', function ($provide) {
           },
           "default": {}
         },
-        "enum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
+        "discriminator": {
+          "type": "string"
         },
-        "type": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/type"
+        "readOnly": {
+          "type": "boolean",
+          "default": false
         },
-        "example": {},
-        "allOf": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/definitions/schema"
-          }
-        }
+        "xml": {
+          "$ref": "#/definitions/xml"
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/externalDocs"
+        },
+        "example": {}
       }
     },
     "primitivesItems": {
@@ -853,13 +1062,25 @@ PhonicsApp.config( ['$provide', function ($provide) {
       }
     },
     "security": {
-      "description": "defines security definitions"
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/securityRequirement"
+      },
+      "uniqueItems": true
     },
     "securityRequirement": {
-      "description": "defines a security requirement",
-      "type": "array"
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "uniqueItems": true
+      }
     },
     "xml": {
+      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string"
@@ -871,17 +1092,28 @@ PhonicsApp.config( ['$provide', function ($provide) {
           "type": "string"
         },
         "attribute": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "wrapped": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         }
-      },
-      "additionalProperties": false
+      }
     },
     "tag": {
       "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
       "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
         "externalDocs": {
           "$ref": "#/definitions/externalDocs"
         }
@@ -889,10 +1121,253 @@ PhonicsApp.config( ['$provide', function ($provide) {
       "patternProperties": {
         "^x-": {
           "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "securityDefinitions": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/basicAuthenticationSecurity"
+          },
+          {
+            "$ref": "#/definitions/apiKeySecurity"
+          },
+          {
+            "$ref": "#/definitions/oauth2ImplicitSecurity"
+          },
+          {
+            "$ref": "#/definitions/oauth2PasswordSecurity"
+          },
+          {
+            "$ref": "#/definitions/oauth2ApplicationSecurity"
+          },
+          {
+            "$ref": "#/definitions/oauth2AccessCodeSecurity"
+          }
+        ]
+      }
+    },
+    "basicAuthenticationSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "basic"
+          ]
         },
-        "^/.*[^/]$": {
+        "description": {
           "type": "string"
         }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "apiKeySecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name",
+        "in"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "apiKey"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "in": {
+          "type": "string",
+          "enum": [
+            "header",
+            "query"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2ImplicitSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "flow",
+        "authorizationUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "implicit"
+          ]
+        },
+        "scopes": {
+          "$ref": "#/definitions/oauth2Scopes"
+        },
+        "authorizationUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2PasswordSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "flow",
+        "tokenUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "password"
+          ]
+        },
+        "scopes": {
+          "$ref": "#/definitions/oauth2Scopes"
+        },
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2ApplicationSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "flow",
+        "tokenUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "application"
+          ]
+        },
+        "scopes": {
+          "$ref": "#/definitions/oauth2Scopes"
+        },
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2AccessCodeSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "flow",
+        "authorizationUrl",
+        "tokenUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "accessCode"
+          ]
+        },
+        "scopes": {
+          "$ref": "#/definitions/oauth2Scopes"
+        },
+        "authorizationUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2Scopes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
       }
     },
     "mediaTypeList": {
@@ -913,13 +1388,7 @@ PhonicsApp.config( ['$provide', function ($provide) {
             "$ref": "#/definitions/parameter"
           },
           {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "$ref": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/definitions/jsonReference"
           }
         ]
       },
@@ -940,6 +1409,16 @@ PhonicsApp.config( ['$provide', function ($provide) {
       "uniqueItems": true
     },
     "collectionFormat": {
+      "type": "string",
+      "enum": [
+        "csv",
+        "ssv",
+        "tsv",
+        "pipes"
+      ],
+      "default": "csv"
+    },
+    "collectionFormatWithMulti": {
       "type": "string",
       "enum": [
         "csv",
@@ -994,6 +1473,15 @@ PhonicsApp.config( ['$provide', function ($provide) {
     },
     "enum": {
       "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
+    },
+    "jsonReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "$ref": {
+          "type": "string"
+        }
+      }
     }
   }
 }
