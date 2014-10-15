@@ -1,6 +1,7 @@
 'use strict';
 
-PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage, Builder, Codegen, $modal, $stateParams, defaults, strings) {
+PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage,
+  Builder, Codegen, $modal, $stateParams, $state, defaults, strings) {
 
   if ($stateParams.path) {
     $scope.breadcrumbs  = [{ active: true, name: $stateParams.path }];
@@ -69,8 +70,8 @@ PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage,
   };
 
   $scope.newProject = function () {
-    Editor.setValue('');
-    Storage.reset();
+    Editor.setValue('swagger: 2');
+    $state.go('home', {mode: 'edit'});
   };
 
   $scope.assignDownloadHrefs = function () {
@@ -128,12 +129,20 @@ PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage,
       json = JSON.stringify(json, null, 4);
       var jsonBlob = new Blob([json], {type: MIME_TYPE});
       $scope.jsonDownloadHref = window.URL.createObjectURL(jsonBlob);
-      $scope.jsonDownloadUrl = [MIME_TYPE, 'swagger.json', $scope.jsonDownloadHref].join(':');
+      $scope.jsonDownloadUrl = [
+        MIME_TYPE,
+        'swagger.json',
+        $scope.jsonDownloadHref
+      ].join(':');
 
       // YAML
       var yamlBlob = new Blob([yaml], {type: MIME_TYPE});
       $scope.yamlDownloadHref = window.URL.createObjectURL(yamlBlob);
-      $scope.yamlDownloadUrl = [MIME_TYPE, 'swagger.yaml', $scope.yamlDownloadHref].join(':');
+      $scope.yamlDownloadUrl = [
+        MIME_TYPE,
+        'swagger.yaml',
+        $scope.yamlDownloadHref
+      ].join(':');
     });
   }
 

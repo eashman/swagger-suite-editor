@@ -1,6 +1,6 @@
 'use strict';
 
-PhonicsApp.config(['$provide', function ($provide) {
+PhonicsApp.config(function ($provide) {
   $provide.constant('defaults',
 
   // BEGIN-DEFAULTS-JSON
@@ -14,7 +14,12 @@ PhonicsApp.config(['$provide', function ($provide) {
     disableCodeGen: true,
 
     examplesFolder: '/spec-files/',
-    exampleFiles: ['default.yaml', 'minimal.yaml', 'heroku-pets.yaml', 'petstore.yaml'],
+    exampleFiles: [
+      'default.yaml',
+      'minimal.yaml',
+      'heroku-pets.yaml',
+      'petstore.yaml'
+    ],
 
     backendEndpoint: '/editor/spec',
     useBackendForStorage: true,
@@ -30,4 +35,4 @@ PhonicsApp.config(['$provide', function ($provide) {
   // END-DEFAULTS-JSON
 
   );
-}]);
+});
