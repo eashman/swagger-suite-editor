@@ -4,21 +4,16 @@
  * Manages the AST representation of the specs for fold status
  * and other meta information about the specs tree
 */
-PhonicsApp.service('ASTManager', function ASTManager(Editor) {
+PhonicsApp.service('ASTManager', function ASTManager() {
   var MAP_TAG = 'tag:yaml.org,2002:map';
   var SEQ_TAG = 'tag:yaml.org,2002:seq';
   var ast = {};
   var changeListeners = [];
 
-  // When editor is ready refresh the AST from Editor value
-  Editor.ready(refreshAST);
-
   /*
   ** Update ast with changes from editor
   */
   function refreshAST(value) {
-    value = value || Editor.getValue();
-
     try {
       ast = yaml.compose(value);
     } catch (error) {
@@ -174,7 +169,7 @@ PhonicsApp.service('ASTManager', function ASTManager(Editor) {
    * @param {boolean} value - optional. if provided overrides node's folded
    *   value
   */
-  function toggleNodeFold(node, value) {
+  function toggleNodeFold(Editor, node, value) {
     /* jshint camelcase: false */
 
     if (typeof value === 'undefined') {
@@ -200,7 +195,7 @@ PhonicsApp.service('ASTManager', function ASTManager(Editor) {
    * then emit AST change event to trigger rendering in the preview
    * pane
   */
-  Editor.onFoldChanged(function (change) {
+  this.onFoldChanged = function onFoldChanged(change) {
     var row = change.data.start.row + 1;
     var folded = change.action !== 'remove';
     var node = scan(ast, row);
@@ -210,14 +205,14 @@ PhonicsApp.service('ASTManager', function ASTManager(Editor) {
     }
 
     emitChanges();
-  });
+  };
 
   /*
    * Toggle a fold status and reflect it in the editor
    * @param {array} path - an array of string that is path to a node
    *   in the AST
   */
-  this.toggleFold = function (path) {
+  this.toggleFold = function (path, Editor) {
     var node = walk(path, ast);
 
     /* jshint camelcase: false */
@@ -227,7 +222,7 @@ PhonicsApp.service('ASTManager', function ASTManager(Editor) {
       return;
     }
 
-    toggleNodeFold(node);
+    toggleNodeFold(Editor, node);
 
     // Let other components know changes happened
     emitChanges();
@@ -239,7 +234,7 @@ PhonicsApp.service('ASTManager', function ASTManager(Editor) {
    * @param {boolean} value - true if all nodes should get folded,
    *  false otherwise
   */
-  this.setFoldAll = function (path, value) {
+  this.setFoldAll = function (path, value, Editor) {
     var node = walk(path, ast);
     var subNode;
 
@@ -250,7 +245,7 @@ PhonicsApp.service('ASTManager', function ASTManager(Editor) {
         subNode = node.value[i];
       }
 
-      toggleNodeFold(subNode, value);
+      toggleNodeFold(Editor, subNode, value);
     }
 
     emitChanges();
