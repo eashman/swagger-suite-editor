@@ -51,7 +51,7 @@ PhonicsApp.service('Builder', function Builder(Schema, Resolver, $q) {
         var result = { specs: resolved };
         var deferred = $q.defer();
 
-        var errors = SwaggerTools.specs.v2.validate(json);
+        var errors = null; //SwaggerTools.specs.v2.validate(json);
 
         if (!errors) {
           deferred.resolve(result);
