@@ -1,53 +1,75 @@
 'use strict';
 
 /*
-** takes a JSON or YAML string, returns YAML string
+ * File loader service to load file from a URL or string
 */
-function load(string) {
-  var jsonError, yamlError;
+SwaggerEditor.service('FileLoader', function FileLoader($http, defaults, YAML) {
 
-  if (!angular.isString(string)) {
-    throw new Error('load function only accepts a string');
-  }
+  /**
+   * Load a file from URL
+   *
+   * @param {string} url - the URL to load from
+   * @param {boolean} disableProxy - disables cors-it proxy
+   * @return {Promise} - resolves to content of the file
+  */
+  function loadFromUrl(url, disableProxy) {
+    return new Promise(function (resolve, reject) {
+      if (disableProxy === undefined) {
+        disableProxy = false;
+      }
 
-  // Try figuring out if it's a JSON string
-  try {
-    JSON.parse(string);
-  } catch (error) {
-    jsonError = error;
-  }
+      // Temporarily use this service to get around non-CORSable URLs
+      if (_.startsWith(url, 'http') && !disableProxy) {
+        url = defaults.importProxyUrl + url;
+      }
 
-  // if it's a JSON string, convert it to YAML string and return it
-  if (!jsonError) {
-    return jsyaml.dump(JSON.parse(string));
-  }
+      $http({
+        method: 'GET',
+        url: url,
+        headers: {
+          accept: 'application/x-yaml,text/yaml,application/json,*/*'
+        }
+      }).then(function (resp) {
+        if (angular.isObject(resp.data)) {
+          YAML.dump(resp.data, function (error, yamlString) {
+            if (error) { return reject(error); }
 
-  // Try parsing the string as a YAML string  and capture the error
-  try {
-    jsyaml.load(string);
-  } catch (error) {
-    yamlError = error;
-  }
-
-  // If there was no error in parsing the string as a YAML string
-  // return the original string
-  if (!yamlError) {
-    return string;
-  }
-
-  // If it was neither JSON or YAML, throw an error
-  throw new Error('load function called with an invalid string');
-}
-
-PhonicsApp.service('FileLoader', function FileLoader($http) {
-
-  // Load from URL
-  this.loadFromUrl = function (url) {
-    return $http.get(url).then(function (resp) {
-      return load(resp.data);
+            resolve(yamlString);
+          });
+        } else {
+          load(resp.data).then(resolve, reject);
+        }
+      }, reject);
     });
-  };
+  }
+
+  /**
+   * takes a JSON or YAML string, returns YAML string
+   *
+   * @param {string} string - the JSON or YAML raw string
+   * @return {Promise}
+   * @throws {TypeError} - resolves to a YAML string
+  */
+  function load(string) {
+    return new Promise(function (resolve, reject) {
+      if (!_.isString(string)) {
+        throw new TypeError('load function only accepts a string');
+      }
+
+      YAML.load(string, function (error, json) {
+        if (error) { return reject(error); }
+
+        YAML.dump(json, function (error, yamlString) {
+          if (error) { return reject(error); }
+
+          resolve(yamlString);
+        });
+      });
+    });
+
+  }
 
   // Load from Local file content (string)
   this.load = load;
+  this.loadFromUrl = loadFromUrl;
 });

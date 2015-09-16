@@ -1,27 +1,40 @@
 'use strict';
 
-PhonicsApp.controller('EditorCtrl', function EditorCtrl($scope, Editor, Builder,
-  Storage, ASTManager) {
-  var debouncedOnAceChange = _.debounce(onAceChange, 1000);
+SwaggerEditor.controller('EditorCtrl', function EditorCtrl($scope, $rootScope,
+  Editor, Builder, Storage, ExternalHooks, Preferences) {
+
+  var debouncedOnAceChange = getDebouncedOnAceChange();
+
+  // if user changed the preferences of keyPressDebounceTime, update the
+  // debouncedOnAceChange function to have the latest debounce value
+  Preferences.onChange(function (key) {
+    if (key === 'keyPressDebounceTime') {
+      debouncedOnAceChange = getDebouncedOnAceChange();
+    }
+  });
+
+  function getDebouncedOnAceChange() {
+    return _.debounce(onAceChange, Preferences.get('keyPressDebounceTime'));
+  }
 
   $scope.aceLoaded = Editor.aceLoaded;
 
   $scope.aceChanged = function () {
-    Storage.save('progress', 0);
+    $rootScope.progressStatus = 'progress-working';
     debouncedOnAceChange();
   };
 
   Editor.ready(function () {
     Storage.load('yaml').then(function (yaml) {
-      Editor.setValue(yaml);
-      onAceChange();
+      $rootScope.editorValue = yaml;
+      onAceChange(true);
     });
   });
 
   function onAceChange() {
-    var value = Editor.getValue();
+    var value = $rootScope.editorValue;
 
     Storage.save('yaml', value);
-    ASTManager.refresh();
+    ExternalHooks.trigger('code-change', []);
   }
 });

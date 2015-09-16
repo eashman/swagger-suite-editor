@@ -1,88 +1,43 @@
 # Swagger Editor
 
-[![Build Status](https://travis-ci.org/wordnik/swagger-editor.svg?branch=master)](https://travis-ci.org/wordnik/swagger-editor)
-[![Code Climate](https://codeclimate.com/github/wordnik/swagger-editor/badges/gpa.svg)](https://codeclimate.com/github/wordnik/swagger-editor)
+[![Build Status](https://travis-ci.org/swagger-api/swagger-editor.svg?branch=master)](https://travis-ci.org/swagger-api/swagger-editor)
+[![Code Climate](https://codeclimate.com/github/swagger-api/swagger-editor/badges/gpa.svg)](https://codeclimate.com/github/swagger-api/swagger-editor)
 
-Swagger Editor lets you edit API specifications in YAML inside your browser and to preview documentations in real time.
+Swagger Editor lets you edit [Swagger API specifications](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md) in YAML inside your browser and to preview documentations in real time.
 Valid Swagger JSON descriptions can then be generated and used with the full Swagger tooling (code generation, documentation, etc).
 
-To understand how it works, you should [try the live demo](http://wordnik.github.io/swagger-editor)!
+**[LIVE DEMO](http://editor.swagger.io)**
 
-## YAML Syntax
-YAML became a first-class citizen as part of the Swagger 2.0 working group process. Documenation for the YAML syntax will become part of the documentation of the [Swagger 2.0 spec](https://github.com/reverb/swagger-spec).
+[![Screenshot of the Swagger Editor](docs/screenshot.png "Designing an API with the Swagger Editor")](http://editor.swagger.io)
 
-![Screenshot of the Swagger Editor](https://raw.githubusercontent.com/wordnik/swagger-editor/master/app/images/swagger-editor2.png "Designing an API with the Swagger Editor")
+#### Running Locally
 
-## Tips
-You can import an existing YAML spec by using the `import` query parameter. For example:
+[**Download the latest release (v2.9.7)**](https://github.com/swagger-api/swagger-editor/releases/download/v2.9.7/swagger-editor.zip) and serve the static files via your HTTP server. If you don't have an HTTP server, you can use [`http-server`](https://www.npmjs.com/package/http-server) Node.js module.
+
+###### Using `http-server` module:
+```shell
+npm install -g http-server
+wget https://github.com/swagger-api/swagger-editor/releases/download/v2.9.7/swagger-editor.zip
+unzip swagger-editor.zip
+http-server swagger-editor
 ```
-http://editor.swagger.wordnik.com/?import=http://generator.wordnik.com/online/api/swagger.yaml
-```
 
-## Running Locally
+#### Building From Source
 
-#### Install Node.js
-
-Make sure you have Node.js installed. If you don't have Node.js, install it from it's [Node.js website](http://nodejs.org/).
-This project was tested with Node.js version `0.10`. Make sure you have at least this version.
+Make sure you have [Node.js](http://nodejs.org/) installed. 
 
 ```shell
-node --version
-```
-
-#### Clone the repository and start it
-
-```shell
-git clone git@github.com:wordnik/swagger-editor.git
+git clone https://github.com/swagger-api/swagger-editor.git
 cd swagger-editor
 npm start
 ```
 
-This will open a browser window running current development version.
+#### Documentations
+* [Why "Try this operation" is not working?](docs/cors.md)
+* [Importing your Swagger document](./docs/import.md)
+* [Development Guide](./docs/development.md)
+* [Configuration Guide](./docs/config.md)
 
-## Development
+[Contributing](./CONTRIBUTING.md)
 
-For development it's preferred to have `grunt` installed globally on your machine.  
-
-### Building
-To build the project just run: 
-
-```
-$ grunt build
-```
-This will build a new version of the web app, ready for production in `/dist` folder
-
-### Pushing to `gh-page`
-
-To copy everything in `/dist` folder to `gh-pages` branch and push it to github, just run:
-
-```
-$ grunt ship
-```
-Please do not touch `gh-pages` branch manually!
-
-###  Configuration
-See [./docs/config.rst](./docs/config.rst) and [./app/scripts/enums/defaults.js](./app/scripts/enums/defaults.js)
-
-### Run with Docker
-
-
-If you are familiar with [Docker](https://www.docker.com/), a `Dockerfile` is
-provided.
-
-Build an image named `swagger-editor`
-```
-sudo docker build -t swagger-editor .
-```
-
-Run the container, using the local port 8080 (you may change this to any available
-port).
-```
-sudo docker run -ti -p 8080:9000 swagger-editor
-```
-And open [http://localhost:8080](http://localhost:8080) in your browser
-
-### Contributing
-File issues in GitHub's to report bugs or issue a pull request.
-
-All contributions must grant copyright permission to this project, the source of which is declared to be under an Apache 2 license (see LICENSE).
+[LICENSE](./LICENSE)

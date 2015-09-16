@@ -10,3 +10,5 @@ app/bower_components
 .*.swp
 buttons.diff
 .idea
+*.iml
+*.zip

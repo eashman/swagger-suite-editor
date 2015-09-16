@@ -2,191 +2,115 @@
 @import "../fonts";
 @import "../buttons";
 
+.menu-bar .dropdown{
+  display: inline-block;
 
-.menu-bar {
+  button, a {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 100;
+    font-size: 12px;
+    background: @header-bg;
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    color: darken(white, 15%);
+    transition: color ease-in 100ms;
+  }
 
-  //TODO: Everything is hardcoded. revisit
-  .status {
-    display: inline-block;
-    width: 335px;
-    text-align: left;
-    padding: 7px;
-    color: darken(@gray-lt, 25%);
-    font-size: 1.2em;
-    .sw-font;
-
-    &.success {
-      color: darken(@gray-lt, 25%);
-    }
-
-    &.error {
-      background-image: url("../images/warning.svg");
-      background-repeat: no-repeat;
-      background-position: 0px 5px;
-      padding-left: 22px;
-      color: @sw-error-header;
+  &:hover {
+    button, a {
+      color: white;
     }
   }
 
-  .sw-font;
-  width: 100%;
-
-    //dropdown styling
-    .dropdown {
-
-      display: inline-block;
-
-      a.dropdown-icon {
-        background-image: url("../images/swagger-sprite.png");
-        background-repeat: no-repeat;
-        background-position: 4px 0px;
-        height: 32px;
-        margin-top: 0;
-        display: block;
-        width: 44px;
-        cursor: pointer;
+  .dropdown-toggle {
+    border-radius: 0;
+    background: none;
+    border: none;
+  }
 
 
-        &:hover {
-          background-image: url("../images/swagger-sprite.png");
-          background-position: 4px -33px;
-        }
+  .dropdown-menu {
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    min-width: 170px;
+
+    .badge {
+      font-family: 'Source Code Pro';
+      background: #FFD700;
+      color: #000;
+      font-size: 10px;
+      border-radius: 3px;
+      padding: 2px 5px;
+      margin-top: 3px;
+      margin-left: 10px;
+    }
+
+    li a {
+      overflow: auto;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .divider {
+      background: lighten(@header-bg, 30%);
+    }
+
+    a, button {
+
+      &:hover {
+        background: darken(@header-bg, 5%);
       }
     }
+  }
 
-    .dropdown:hover .dropdown-menu {
-      display: block;
+  &.open {
+    background: darken(@header-bg, 10%);
+
+    .dropdown-menu, a, li, button, button:focus {
+      background: darken(@header-bg, 10%);
+      color: white;
     }
 
-    ul.dropdown-menu  {
-      border-radius: @border-radius;
-      color: @toolbar-button-color;
-      background: @toolbar-button-bg;
-      font-size: @button-font-size;
+    .dropdown-menu {
+      margin-top: 0;
+
+      a:hover {
+        background: darken(@header-bg, 30%);
+      }
 
       .divider {
-        background-color: @gray-md;
-      }
-
-      li {
-
-        a {
-          color: @toolbar-button-color;
-
-          &:hover {
-            background: lighten(@toolbar-button-bg, 10%);
-          }
-        }
+        background: darken(@header-bg, 30%);
       }
     }
+  }
 
-    .toolbar {
-      min-height: 30px;
-      padding: 0 15px 5px 15px;
-      section {
-        float: left;
+  .font-size {
+    span {
+      background: none;
 
-        &.right {
-          float: right;
-
-          ul.dropdown-menu {
-            min-width: 210px;
-          }
-        }
-
-      }
-
-      .btn-drawer {
-        display: inline-block;
-        position: relative;
-        margin-right: 0.4em;
-
-        .toolbar-btn {
-          border: none;
-          display: block;
-          margin: 0;
-        }
+      &.adjust {
+        padding: 0px 15px;
+        border: 1px solid gray;
+        border-radius: 5px;
+        margin: 0;
+        display: inline-table;
 
         &:hover {
-          >.toolbar-btn {
-            background: #000;
-          }
-          div.buttons {
-            display: block;
-
-            &, .toolbar-btn:last-child {
-              border-bottom-left-radius: @border-radius;
-              border-bottom-right-radius: @border-radius;
-            }
-          }
+          background: darken(@header-bg, 10%);
         }
 
-        &:hover .drawer{
-          border-bottom-left-radius: 0;
+        &:first-child {
+          border-top-right-radius: 0;
           border-bottom-right-radius: 0;
+          border-right: none;
+        }
+        &:last-child {
+          border-top-left-radius: 0;
+          border-bottom-left-radius: 0;
         }
       }
-
-      .btn-default {
-        display: inline-block;
-        -webkit-appearance: none;
-        border: 1px solid @gray-md;
-        border-radius: @border-radius;
-        text-align: left;
-        color: @toolbar-button-color;
-        text-decoration: none;
-        font-size: @button-font-size;
-        padding-top: 0.3em;
-        padding-bottom: 0.3em;
-        outline: none;
-        cursor: pointer;
-        background: @toolbar-button-bg;
-        min-width: 140px;
-
-        &:hover {
-          text-decoration: none;
-          border-radius: @border-radius;
-          background: lighten(@toolbar-button-bg, 10%);
-        }
-
-        span {
-          font-size: .5em;
-          vertical-align: middle;
-          margin-left: 76px;
-        }
-
-        &.menu-button {
-          display: display;
-          border: none;
-        }
-      }
-
-      .branding-3rdparty {
-          float: left;
-          margin-right: 20px;
-      }
-
     }
   }
-
-  .breadcrumbs .breadcrumb {
-  // TODO: colors
-  background: none;
-  color: white;
-  margin-left: 20px;
-
-  > li + li:before {
-    content: ">";
-  }
-
-  li > a {
-    color: white;
-
-    &:hover {
-      color: @http-get;
-      text-decoration: none;
-    }
-  }
-
-
 }

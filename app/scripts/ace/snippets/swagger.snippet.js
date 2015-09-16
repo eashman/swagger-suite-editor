@@ -1,6 +1,42 @@
 'use strict';
 
-PhonicsApp.config(function ($provide) {
+SwaggerEditor.config(function ($provide) {
+  var operationRegex = 'get|put|post|delete|options|head|patch';
+
+  /*
+   * Makes an HTTP operation snippet's content based on operation name
+   *
+   * @param operationName {string} - the HTTP verb
+   *
+   * @returns {string} - the snippet content for that operation
+  */
+  function makeOperationSnippet(operationName) {
+    return [
+      '${1:' + operationName + '}:',
+      '  summary: ${2}',
+      '  description: ${2}',
+      '  responses:',
+      '    ${3:200\:}',
+      '      description: ${4:OK}',
+      '${6}'
+    ].join('\n');
+  }
+
+  /*
+   * Makes an HTTP response code snippet's content based on code
+   *
+   * @param code {string} - HTTP Response Code
+   *
+   * @returns {string} - Snippet content
+  */
+  function makeResponseCodeSnippet(code) {
+    return [
+      '${1:' + code + '}:',
+      '  description: ${2}',
+      '${3}'
+    ].join('\n');
+  }
+
   $provide.constant('snippets', [
     {
       name: 'swagger',
@@ -58,38 +94,78 @@ PhonicsApp.config(function ($provide) {
       trigger: 'path',
       path: ['paths'],
       content: [
-        '${1} :',
+        '/${1}:',
         '  ${2}'
       ].join('\n')
     },
 
     {
-      name: 'operation',
-      trigger: 'op',
-      path: ['paths', '*'],
-      content: [
-        '${1:operationName}:',
-        '  summary: ${2}',
-        '  description: ${2}',
-        '  responses:',
-        '    ${3:response}',
-        '  parameters:',
-        '    ${4:parameter}',
-        '  tags: ${5:[]}',
-        '${6}'
-      ].join('\n')
+      name: 'get',
+      trigger: 'get',
+      path: ['paths', '.'],
+      content: makeOperationSnippet('get')
     },
 
     {
+      name: 'post',
+      trigger: 'post',
+      path: ['paths', '.'],
+      content: makeOperationSnippet('post')
+    },
+
+    {
+      name: 'put',
+      trigger: 'put',
+      path: ['paths', '.'],
+      content: makeOperationSnippet('put')
+    },
+
+    {
+      name: 'delete',
+      trigger: 'delete',
+      path: ['paths', '.'],
+      content: makeOperationSnippet('delete')
+    },
+
+    {
+      name: 'patch',
+      trigger: 'patch',
+      path: ['paths', '.'],
+      content: makeOperationSnippet('patch')
+    },
+
+    {
+      name: 'options',
+      trigger: 'options',
+      path: ['paths', '.'],
+      content: makeOperationSnippet('options')
+    },
+
+    // operation level parameter
+    {
       name: 'parameter',
       trigger: 'param',
-      path: ['paths', '*', '*'],
+      path: ['paths', '.', '.', 'parameters'],
       content: [
         '- name: ${1:parameter_name}',
-        '  in: ${2:in}',
+        '  in: ${2:query}',
         '  description: ${3:description}',
-        '  schema:',
-        '    ${4:schema}',
+        '  type: ${4:string}',
+        '${5}'
+      ].join('\n')
+    },
+
+    // path level parameter
+    {
+      name: 'parameter',
+      trigger: 'param',
+      path: ['paths', '.', 'parameters'],
+      content: [
+        '- name: ${1:parameter_name}',
+        '  in: ${2:path}',
+        '  required: true',
+        '  description: ${3:description}',
+        '  type: ${4:string}',
         '${5}'
       ].join('\n')
     },
@@ -97,7 +173,7 @@ PhonicsApp.config(function ($provide) {
     {
       name: 'response',
       trigger: 'resp',
-      path: ['paths', '*', '*'],
+      path: ['paths', '.', '.', 'responses'],
       content: [
         '${1:code}:',
         '  description: ${2}',
@@ -107,8 +183,37 @@ PhonicsApp.config(function ($provide) {
     },
 
     {
+      name: '200',
+      trigger: '200',
+      path: ['paths', '.', operationRegex, 'responses'],
+      content: makeResponseCodeSnippet('200')
+    },
+
+    {
+      name: '300',
+      trigger: '300',
+      path: ['paths', '.', operationRegex, 'responses'],
+      content: makeResponseCodeSnippet('300')
+    },
+
+    {
+      name: '400',
+      trigger: '400',
+      path: ['paths', '.', operationRegex, 'responses'],
+      content: makeResponseCodeSnippet('400')
+    },
+
+    {
+      name: '500',
+      trigger: '500',
+      path: ['paths', '.', operationRegex, 'responses'],
+      content: makeResponseCodeSnippet('500')
+    },
+
+    {
       name: 'model',
       trigger: 'mod|def',
+      regex: 'mod|def',
       path: ['definitions'],
       content: [
         '${1:ModelName}:',

@@ -1,23 +1,15 @@
+'use strict';
+
 module.exports = {
-  'publish-npm': {
-    command: 'sh scripts/publish-npm.sh'
+  'publish': {
+    command: [
+      'npm publish',
+      'node scripts/copy-dist-package-json.js',
+      'cd dist',
+      'npm publish'
+    ].join(';\n')
   },
   'serve-dist': {
     command: './node_modules/http-server/bin/http-server -p 8090 &'
-  },
-  'replace-defaults-a127': {
-    command: 'sh scripts/replace-defaults-a127.sh'
-  },
-  'publish-npm-a127': {
-    command: 'sh scripts/publish-npm-a127.sh'
-  },
-  'a127-restore-defaults': {
-    command: 'git reset --hard'
-  },
-  'squash': {
-    command: 'sh scripts/squash.sh'
-  },
-  'publish-npm-src': {
-    command: 'npm version patch; npm publish'
   }
 };

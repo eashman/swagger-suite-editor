@@ -1,18 +1,18 @@
 'use strict';
 
-describe('Service: Fileloader', function () {
+describe('Service: FileLoader', function () {
 
   // load the service's module
-  beforeEach(module('koknusApp'));
+  beforeEach(window.angular.mock.module('SwaggerEditor'));
 
   // instantiate service
-  var Fileloader;
-  beforeEach(inject(function (_Fileloader_) {
-    Fileloader = _Fileloader_;
+  var FileLoader;
+  beforeEach(inject(function (_FileLoader_) {
+    FileLoader = _FileLoader_;
   }));
 
-  it('should do something', function () {
-    expect(!!Fileloader).toBe(true);
+  it('should exists', function () {
+    expect(!!FileLoader).to.equal(true);
   });
 
 });

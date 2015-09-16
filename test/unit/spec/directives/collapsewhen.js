@@ -3,7 +3,7 @@
 describe('Directive: collapseWhen', function () {
 
   // load the directive's module
-  beforeEach(module('koknusApp'));
+  beforeEach(window.angular.mock.module('SwaggerEditor'));
 
   var element,
     scope;
@@ -13,8 +13,9 @@ describe('Directive: collapseWhen', function () {
   }));
 
   it('should make hidden element visible', inject(function ($compile) {
-    element = angular.element('<collapse-when></collapse-when>');
+    element = angular.element(
+      '<div collapse-when>this is the collapseWhen directive</div>');
     element = $compile(element)(scope);
-    expect(element.text()).toBe('this is the collapseWhen directive');
+    expect(element.text()).to.equal('this is the collapseWhen directive');
   }));
 });

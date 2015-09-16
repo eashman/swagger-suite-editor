@@ -1,18 +1,22 @@
 'use strict';
 
-PhonicsApp.controller('FileImportCtrl', function FileImportCtrl($scope,
-  $modalInstance, FileLoader, $localStorage, Storage, Editor, ASTManager) {
+SwaggerEditor.controller('FileImportCtrl', function FileImportCtrl($scope,
+  $modalInstance, $rootScope, $localStorage, $state, FileLoader, Storage) {
   var results;
 
   $scope.fileChanged = function ($fileContent) {
-    results = FileLoader.load($fileContent);
+    FileLoader.load($fileContent).then(function (res) {
+      $scope.$apply(function () {
+        results = res;
+      });
+    });
   };
 
   $scope.ok = function () {
     if (angular.isString(results)) {
-      Editor.setValue(results);
+      $rootScope.editorValue = results;
       Storage.save('yaml', results);
-      ASTManager.refresh();
+      $state.go('home', {tags: null});
     }
     $modalInstance.close();
   };

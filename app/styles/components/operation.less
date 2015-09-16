@@ -5,14 +5,18 @@
 
 .operation-theme(@color) {
   border: 1px solid @color;
-  background: #fff;
+  background-color: #fff;
 
   .http-method{
-    background: @color;
+    background-color: @color;
     color: white;
   }
   >header {
-    background: fade(@color, 10%);
+    background-color: fade(@color, 10%);
+    @media print {
+      background-color: lighten(@color, 10%) !important;
+      -webkit-print-color-adjust: exact;
+    }
   }
   h4 {
     color:@color;
@@ -32,12 +36,6 @@ li.operation {
   border-radius: @operation-border-radius;
   position: relative;
 
-  .tooltip {
-    .tooltip-inner {
-      border-radius: 0;
-    }
-  }
-
   >header {
     overflow: hidden;
     cursor: pointer;
@@ -55,6 +53,15 @@ li.operation {
       display: none;
     }
 
+    .deprecated {
+      float: left;
+      margin: 8px;
+      color: white;
+      background: #C52A5E; // TODO: move to colors.less
+      padding: 0px 7px;
+      border: 1px solid white;
+    }
+
     &:hover .focus-editor {
       display: inline-block;
       background-image: url("../images/jump-icon.svg");
@@ -65,9 +72,9 @@ li.operation {
     }
 
     .http-method  {
-      .sw-font-light;
-      font-size: 0.9em;
-      padding: .6em .5em;
+      font-family: 'Source Code Pro';
+      font-size: 16px;
+      padding: .5em .5em;
       display: table-cell;
       float: left;
       border-top-left-radius: @operation-border-radius - 2;
@@ -87,15 +94,14 @@ li.operation {
   }
 
   .operation-theme(@http-default);
-  &.get { .operation-theme(@http-get); }
-  &.post { .operation-theme(@http-post); }
-  &.delete { .operation-theme(@http-delete); }
-  &.patch { .operation-theme(@http-patch); }
-  &.put { .operation-theme(@http-put); }
+  &.get     { .operation-theme(@http-get);     }
+  &.post    { .operation-theme(@http-post);    }
+  &.delete  { .operation-theme(@http-delete);  }
+  &.patch   { .operation-theme(@http-patch);   }
+  &.put     { .operation-theme(@http-put);     }
   &.options { .operation-theme(@http-options); }
-  &.head { .operation-theme(@http-head); }
-  &.trace { .operation-theme(@http-trace); }
-
+  &.head    { .operation-theme(@http-head);    }
+  &.trace   { .operation-theme(@http-trace);   }
 
   .content >section {
     margin: 1em;
@@ -103,7 +109,6 @@ li.operation {
     font-size: 0.9em;
 
     >h4 {
-      font-size: 1em;
       font-family: "Open Sans";
       font-weight: 600;
     }
@@ -119,7 +124,7 @@ li.operation {
   }
 
 
-  table.params, table.respns {
+  table.params, table.respns, table.security {
     width: 100%;
 
     >thead {
@@ -127,7 +132,6 @@ li.operation {
 
         >th {
           padding: 0.3em;
-          font-size: .8em;
           font-weight: 600;
           background-color: #f7f7f7;
         }
@@ -137,7 +141,7 @@ li.operation {
     >tbody {
       >tr {
         border-bottom: 1px solid silver;
-        font-size: 0.8em;
+        font-size: 16px;
 
         >td {
           padding: 0.3em;
@@ -154,11 +158,14 @@ li.operation {
             white-space: pre;
           }
 
+          .security-value {
+            padding: 0 1em 0 0;
+          }
+
           span.resp-code {
             border-radius: 3px;
             color: @code-default;
             padding: 3px 0;
-            font-size: 1.1em;
             letter-spacing: 0.5px;
             font-weight: 700;
             display: inline-block;
@@ -170,6 +177,14 @@ li.operation {
           }
         }
       }
+    }
+  }
+
+  .respnse-headers {
+    font-size: 85%;
+
+    th, td {
+      padding: 4px;
     }
   }
 

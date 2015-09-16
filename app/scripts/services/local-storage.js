@@ -1,13 +1,17 @@
 'use strict';
 
-PhonicsApp.service('LocalStorage', function LocalStorage($localStorage, $q) {
+SwaggerEditor.service('LocalStorage', function LocalStorage($localStorage,
+  $rootScope) {
+
   var storageKey = 'SwaggerEditorCache';
-  var changeListeners =  Object.create(null);
-  var that = this;
+  var changeListeners =  {};
 
-  $localStorage[storageKey] = $localStorage[storageKey] || Object.create(null);
+  $localStorage[storageKey] = $localStorage[storageKey] || {};
 
-  this.save = function (key, value) {
+  /*
+   *
+  */
+  function save(key, value) {
     if (value === null) {
       return;
     }
@@ -22,32 +26,40 @@ PhonicsApp.service('LocalStorage', function LocalStorage($localStorage, $q) {
       window.requestAnimationFrame(function () {
         $localStorage[storageKey][key] = value;
       });
+
+      if (key === 'yaml') {
+        $rootScope.progressStatus = 'success-saved';
+      }
     }, 100)();
-  };
+  }
 
-  this.reset = function () {
-    Object.keys($localStorage[storageKey]).forEach(function (key) {
-      that.save(key, '');
+  /*
+   *
+  */
+  function load(key) {
+    return new Promise(function (resolve) {
+      if (!key) {
+        resolve($localStorage[storageKey]);
+      } else {
+        resolve($localStorage[storageKey][key]);
+      }
     });
-  };
+  }
 
-  this.load = function (key) {
-    var deferred = $q.defer();
-    if (!key) {
-      deferred.resolve($localStorage[storageKey]);
-    } else {
-      deferred.resolve($localStorage[storageKey][key]);
-    }
-
-    return deferred.promise;
-  };
-
-  this.addChangeListener = function (key, fn) {
+  /*
+   *
+  */
+  function addChangeListener(key, fn) {
     if (angular.isFunction(fn)) {
       if (!changeListeners[key]) {
         changeListeners[key] = [];
       }
       changeListeners[key].push(fn);
     }
-  };
+  }
+
+  this.save = save;
+  this.reset = $localStorage.$reset;
+  this.load = load;
+  this.addChangeListener = addChangeListener;
 });

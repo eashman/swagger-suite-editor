@@ -6,7 +6,7 @@
  * that are in focus in the editor line of code to focus in the editor
  * for a given path
 */
-PhonicsApp.service('FocusedPath', function FocusedPath(ASTManager, Editor) {
+SwaggerEditor.service('FocusedPath', function FocusedPath(ASTManager, Editor) {
 
   /*
    * A path is in focus if it's key or **any** sub path of it is in focus
@@ -16,7 +16,7 @@ PhonicsApp.service('FocusedPath', function FocusedPath(ASTManager, Editor) {
   */
   this.isInFocus = function (path) {
     var focusedLine = Editor.lineInFocus();
-    var focusedPath = ASTManager.pathForLine(focusedLine);
+    var focusedPath = ASTManager.pathForPosition(focusedLine);
 
     return Array.isArray(focusedPath) &&
       _.isEqual(path, focusedPath.slice(0, path.length));

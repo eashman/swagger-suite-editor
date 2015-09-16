@@ -1,7 +1,8 @@
 'use strict';
 
-PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage,
-  Builder, Codegen, $modal, $stateParams, $state, defaults, strings) {
+SwaggerEditor.controller('HeaderCtrl', function HeaderCtrl($scope, $modal,
+  $stateParams, $state, $rootScope, Storage, Builder, FileLoader, Editor,
+  Codegen, Preferences, YAML, defaults, strings, $localStorage) {
 
   if ($stateParams.path) {
     $scope.breadcrumbs  = [{ active: true, name: $stateParams.path }];
@@ -10,44 +11,51 @@ PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage,
   }
 
   // var statusTimeout;
-  Storage.addChangeListener('progress', function (progressStatus) {
-    $scope.status = strings.stausMessages[progressStatus];
-    $scope.statusClass = null;
+  $rootScope.$watch('progressStatus', function (progressStatus) {
+    var status = strings.stausMessages[progressStatus];
+    var statusClass = null;
 
-    if (progressStatus > 0) {
-      $scope.statusClass = 'success';
+    if (/success/.test(progressStatus)) {
+      statusClass = 'success';
     }
 
-    if (progressStatus < 0) {
-      $scope.statusClass = 'error';
+    if (/error/.test(progressStatus)) {
+      statusClass = 'error';
     }
+
+    if (/working/.test(progressStatus)) {
+      statusClass = 'working';
+    }
+
+    $scope.status = status;
+    $scope.statusClass = statusClass;
   });
 
   // Show the intro if it's first time visit
-  Storage.load('intro').then(function (intro) {
-    if (!intro && !defaults.disableNewUserIntro) {
-      $scope.showAbout = true;
-      Storage.save('intro', true);
-    }
+  $localStorage.$default({
+    showIntro: !defaults.disableNewUserIntro
   });
+  $rootScope.showAbout = $localStorage.showIntro;
 
   // -- Client and Server menus
   $scope.disableCodeGen = defaults.disableCodeGen;
 
-  Codegen.getServers().then(function (servers) {
-    $scope.servers = servers;
-  });
+  if (!defaults.disableCodeGen) {
+    Codegen.getServers().then(function (servers) {
+      $scope.servers = servers;
+    }, function () {
+      $scope.serversNotAvailable = true;
+    });
 
-  Codegen.getClients().then(function (clinets) {
-    $scope.clinets = clinets;
-  });
+    Codegen.getClients().then(function (clients) {
+      $scope.clients = clients;
+    }, function () {
+      $scope.clientsNotAvailable = true;
+    });
+  }
 
-  $scope.getServer = function (language) {
-    Codegen.getServer(language).then(noop, showCodegenError);
-  };
-
-  $scope.getClient = function (language) {
-    Codegen.getClient(language).then(noop, showCodegenError);
+  $scope.getSDK = function (type, language) {
+    Codegen.getSDK(type, language).then(noop, showCodegenError);
   };
 
   function showCodegenError(resp) {
@@ -70,12 +78,16 @@ PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage,
   };
 
   $scope.newProject = function () {
-    Editor.setValue('swagger: \'2.0\'');
-    $state.go('home', {mode: 'edit'});
+    FileLoader.loadFromUrl('spec-files/guide.yaml').then(function (value) {
+      $rootScope.editorValue = value;
+      Storage.save('yaml', value);
+      $state.go('home', {tags: null});
+    });
   };
 
-  $scope.assignDownloadHrefs = function () {
-    assignDownloadHrefs($scope, Storage);
+  $scope.onFileMenuOpen = function () {
+    assignDownloadHrefs();
+    $rootScope.$broadcast('toggleWatchers', false);
   };
 
   $scope.openImportFile = function () {
@@ -94,9 +106,30 @@ PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage,
     });
   };
 
-  $scope.toggleAboutEditor = function (value) {
-    $scope.showAbout = value;
+  $scope.openPasteJSON = function () {
+    $modal.open({
+      templateUrl: 'templates/paste-json.html',
+      controller: 'PasteJSONCtrl',
+      size: 'large'
+    });
   };
+
+  $scope.openAbout = function () {
+    $modal.open({
+      templateUrl: 'templates/about.html',
+      size: 'large',
+      controller: 'ModalCtrl'
+    });
+  };
+
+  $rootScope.toggleAboutEditor = function (value) {
+    $rootScope.showAbout = value;
+    $localStorage.showIntro = value;
+  };
+
+  $scope.openEditorPreferences = Editor.showSettings;
+  $scope.resetSettings = Editor.resetSettings;
+  $scope.adjustFontSize = Editor.adjustFontSize;
 
   $scope.openExamples = function () {
     $modal.open({
@@ -106,45 +139,107 @@ PhonicsApp.controller('HeaderCtrl', function HeaderCtrl($scope, Editor, Storage,
     });
   };
 
+  $scope.openPreferences = function () {
+    $modal.open({
+      templateUrl: 'templates/preferences.html',
+      controller: 'PreferencesCtrl',
+      size: 'large'
+    });
+  };
+
+  $scope.isLiveRenderEnabled = function () {
+    return !!Preferences.get('liveRender');
+  };
+
   function assignDownloadHrefs() {
     var MIME_TYPE = 'text/plain';
 
     Storage.load('yaml').then(function (yaml) {
+      YAML.load(yaml, function (error, json) {
 
-      // JSON
-      var json = jsyaml.load(yaml);
-
-      // swagger and version should be a string to comfort with the schema
-      if (json.info.version) {
-        json.info.version = String(json.info.version);
-      }
-      if (json.swagger) {
-        if (json.swagger === 2) {
-          json.swagger = '2.0';
-        } else {
-          json.swagger = String(json.swagger);
+        // if `yaml` is JSON, convert it to YAML
+        var jsonParseError = null;
+        try {
+          JSON.parse(yaml);
+        } catch (error) {
+          jsonParseError = error;
         }
-      }
 
-      json = JSON.stringify(json, null, 4);
-      var jsonBlob = new Blob([json], {type: MIME_TYPE});
-      $scope.jsonDownloadHref = window.URL.createObjectURL(jsonBlob);
-      $scope.jsonDownloadUrl = [
-        MIME_TYPE,
-        'swagger.json',
-        $scope.jsonDownloadHref
-      ].join(':');
+        if (!jsonParseError) {
+          YAML.dump(json, function (error, yamlStr) {
+            assign(yamlStr, json);
+          });
+        } else {
+          assign(yaml, json);
+        }
 
-      // YAML
-      var yamlBlob = new Blob([yaml], {type: MIME_TYPE});
-      $scope.yamlDownloadHref = window.URL.createObjectURL(yamlBlob);
-      $scope.yamlDownloadUrl = [
-        MIME_TYPE,
-        'swagger.yaml',
-        $scope.yamlDownloadHref
-      ].join(':');
+        function assign(yaml, json) {
+          // swagger and version should be a string to comfort with the schema
+          if (json.info.version) {
+            json.info.version = String(json.info.version);
+          }
+          if (json.swagger) {
+            if (json.swagger === 2) {
+              json.swagger = '2.0';
+            } else {
+              json.swagger = String(json.swagger);
+            }
+          }
+
+          json = JSON.stringify(json, null, 4);
+          var jsonBlob = new Blob([json], {type: MIME_TYPE});
+          $scope.jsonDownloadHref = window.URL.createObjectURL(jsonBlob);
+          $scope.jsonDownloadUrl = [
+            MIME_TYPE,
+            'swagger.json',
+            $scope.jsonDownloadHref
+          ].join(':');
+
+          // YAML
+          var yamlBlob = new Blob([yaml], {type: MIME_TYPE});
+          $scope.yamlDownloadHref = window.URL.createObjectURL(yamlBlob);
+          $scope.yamlDownloadUrl = [
+            MIME_TYPE,
+            'swagger.yaml',
+            $scope.yamlDownloadHref
+          ].join(':');
+        }
+      });
     });
   }
+
+  $scope.capitalizeGeneratorName = function (name) {
+    var names = {
+      jaxrs: 'JAX-RS',
+      nodejs: 'Node.js',
+      scalatra: 'Scalatra',
+      'spring-mvc': 'Spring MVC',
+      android: 'Android',
+      'async-scala': 'Async Scala',
+      csharp: 'C#',
+      CsharpDotNet2: 'C# .NET 2.0',
+      qt5cpp: 'Qt 5 C++',
+      java: 'Java',
+      objc: 'Objective-C',
+      php: 'PHP',
+      python: 'Python',
+      ruby: 'Ruby',
+      scala: 'Scala',
+      'dynamic-html': 'Dynamic HTML',
+      html: 'HTML',
+      swagger: 'Swagger JSON',
+      'swagger-yaml': 'Swagger YAML',
+      tizen: 'Tizen'
+    };
+
+    if (names[name]) {
+      return names[name];
+    }
+
+    return name.split(/\s+|\-/).map(function (word) {
+      return word[0].toUpperCase() + word.substr(1);
+    }).join(' ');
+  };
 
   function noop() {
 

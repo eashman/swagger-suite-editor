@@ -21,22 +21,15 @@
   "globals": {
     "angular": false,
     "ace": false,
-    "markdown": false,
-    "jsyaml": false,
     "yaml": false,
-    "PhonicsApp": false,
-    "SwaggerApi": false,
-    "SwaggerResource": false,
-    "SwaggerModel": false,
-    "SwaggerModelProperty": false,
-    "SwaggerOperation": false,
-    "SwaggerRequest": false,
-    "SwaggerHttp": false,
-    "SwaggerAuthorizations": false,
-    "SwaggerUi": false,
-    "swaggerUi": false,
+    "jsyaml": false,
+    "YAMLWorker": false,
+    "JsonRefs": false,
     "$": false,
     "_": false,
-    "SwaggerTools": false
+    "SwaggerEditor": false,
+    "SparkMD5": false,
+    "JSONFormatter": false,
+    "JSONSchemaView": false
   }
 }

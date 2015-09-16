@@ -1,6 +1,6 @@
 'use strict';
 
-PhonicsApp.service('Builder', function Builder(Schema, Resolver, $q) {
+SwaggerEditor.service('Builder', function Builder($q, SwayWorker) {
   var load = _.memoize(jsyaml.load);
 
   /**
@@ -17,7 +17,7 @@ PhonicsApp.service('Builder', function Builder(Schema, Resolver, $q) {
     if (!stringValue) {
       deferred.reject({
         specs: null,
-        error: {emptyDocsError: {message: 'Empty Document'}}
+        errors: [{emptyDocsError: 'Empty Document Error'}]
       });
 
       return deferred.promise;
@@ -28,7 +28,7 @@ PhonicsApp.service('Builder', function Builder(Schema, Resolver, $q) {
       json = load(stringValue);
     } catch (yamlError) {
       deferred.reject({
-        error: { yamlError: yamlError },
+        errors: [{yamlError: yamlError}],
         specs: null
       });
 
@@ -37,81 +37,30 @@ PhonicsApp.service('Builder', function Builder(Schema, Resolver, $q) {
 
     // Add `title` from object key to definitions
     // if they are missing title
-    if (json && json.definitions) {
+    if (json && _.isObject(json.definitions)) {
+
       for (var definition in json.definitions) {
-        if (_.isEmpty(json.definitions[definition].title)) {
+
+
+        if (_.isObject(json.definitions[definition]) &&
+            !_.startsWith(definition, 'x-') &&
+            _.isEmpty(json.definitions[definition].title)) {
+
           json.definitions[definition].title = definition;
         }
       }
     }
 
-    return Resolver.resolve(json).then(
-
-      function onSuccess(resolved) {
-        var result = { specs: resolved };
-        var deferred = $q.defer();
-
-        var errors = null; //SwaggerTools.specs.v2.validate(json);
-
-        if (!errors) {
-          deferred.resolve(result);
-        } else {
-          result.error = { swaggerError: errors };
-          deferred.reject(result);
-        }
-
-        return deferred.promise;
-      },
-
-      function onFalure(resolveError) {
-        return {
-          error: {
-            resolveError: resolveError.data,
-            raw: resolveError
-          },
-          specs: json
-        };
+    SwayWorker.run(json, function (data) {
+      if (data.errors.length) {
+        deferred.reject(data);
+      } else {
+        deferred.resolve(data);
       }
-    );
-  }
+    });
 
-  /**
-   * Gets a path JSON object and Specs, finds the path in the
-   * specs JSON and updates it
-   * @param {array} - path an array of keys to reach to an object in JSON
-   *   structure
-   * @param {string} - pathName
-   * @param {object} - specs
-  */
-  function updatePath(path, pathName, specs) {
-    var json;
-    var error = null;
-
-    try {
-      json = load(path);
-    } catch (e) {
-      error = { yamlError: e };
-    }
-
-    if (!error) {
-      specs.paths[pathName] = json[pathName];
-    }
-
-    return {
-      specs: specs,
-      error: error
-    };
-  }
-
-  /*
-   * Returns one path that matches pathName
-   * Returns error object if there is schema incomparability issues
-  */
-  function getPath(specs, path) {
-    return _.pick(specs.paths, path);
+    return deferred.promise;
   }
 
   this.buildDocs = buildDocs;
-  this.updatePath = updatePath;
-  this.getPath = getPath;
 });

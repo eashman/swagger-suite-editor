@@ -1,21 +1,15 @@
 'use strict';
 
-PhonicsApp.config(function Router($compileProvider, $stateProvider,
-  $urlRouterProvider) {
+SwaggerEditor.config(function Router($compileProvider, $stateProvider,
+  $urlRouterProvider, $logProvider) {
   $urlRouterProvider.otherwise('/');
 
   $stateProvider
   .state('home', {
-    url: '/{mode}?import',
+    url: '/?import&tags&no-proxy',
     views: {
       '': {
-        templateUrl: function ($statePrams) {
-          if ($statePrams.mode === 'edit') {
-            return 'views/main.html';
-          } else {
-            return 'views/main-preview.html';
-          }
-        },
+        templateUrl: 'views/main.html',
         controller: 'MainCtrl'
       },
       'header@home': {
@@ -34,4 +28,11 @@ PhonicsApp.config(function Router($compileProvider, $stateProvider,
   });
 
   $compileProvider.aHrefSanitizationWhitelist('.');
+
+  // Disable debug info in production. To detect the "production" mode we are
+  // examining location.host to see if it matches localhost
+  var isProduction = !/localhost/.test(window.location.host);
+
+  $compileProvider.debugInfoEnabled(!isProduction);
+  $logProvider.debugEnabled(!isProduction);
 });

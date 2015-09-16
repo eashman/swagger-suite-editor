@@ -3,46 +3,40 @@
 /*
  * Code Generator service
 */
-PhonicsApp.service('Codegen', function Codegen($http, defaults, Storage) {
+SwaggerEditor.service('Codegen', function Codegen($http, defaults, Storage,
+  YAML) {
   this.getServers = function () {
+    if (!defaults.codegen.servers) {
+      return new Promise(function (resolve) { resolve([]); });
+    }
     return $http.get(defaults.codegen.servers).then(function (resp) {
       return resp.data;
     });
   };
 
   this.getClients = function () {
+    if (!defaults.codegen.clients) {
+      return new Promise(function (resolve) { resolve([]); });
+    }
     return $http.get(defaults.codegen.clients).then(function (resp) {
       return resp.data;
     });
   };
 
-  this.getServer = function (language) {
-    var url = _.template(defaults.codegen.server)({
-      language: language
-    });
+  this.getSDK = function (type, language) {
+
+    var url = defaults.codegen[type].replace('{language}', language);
 
     return Storage.load('yaml').then(function (yaml) {
-      var specs = jsyaml.load(yaml);
-
-      return $http.post(url, {swagger: specs}).then(redirect);
-    });
-  };
-
-  this.getClient = function (language) {
-    var url = _.template(defaults.codegen.client)({
-      language: language
-    });
-
-    return Storage.load('yaml').then(function (yaml) {
-      var specs = jsyaml.load(yaml);
-
-      return $http.post(url, {swagger: specs}).then(redirect);
+      YAML.load(yaml, function (error, spec) {
+        $http.post(url, {spec: spec}).then(redirect);
+      });
     });
   };
 
   function redirect(resp) {
-    if (angular.isObject(resp) && resp.code) {
-      window.location = resp.data.code;
+    if (angular.isObject(resp.data) && resp.data.link) {
+      window.location = resp.data.link;
     }
   }
 });

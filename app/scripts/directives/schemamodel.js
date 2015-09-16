@@ -1,38 +1,33 @@
 'use strict';
 
-/*
-** Removes vendor extensions (x- keys) deeply from an object
-*/
-function removeVendorExtensions(obj) {
-  if (!angular.isObject(obj)) {
-    return obj;
-  }
+SwaggerEditor.directive('schemaModel', function () {
 
-  var result = {};
+  return {
+    templateUrl: 'templates/schema-model.html',
+    restrict: 'E',
+    replace: true,
+    scope: {
+      schema: '='
+    },
 
-  Object.keys(obj).forEach(function (k) {
-    if (k.toLowerCase().substring(0, 2) !== 'x-') {
-      result[k] = removeVendorExtensions(obj[k]);
-    }
-  });
+    link: function postLink($scope, $element) {
+      $scope.mode = 'schema';
 
-  return result;
-}
+      $scope.switchMode = function () {
+        $scope.mode = $scope.mode === 'json' ? 'schema' : 'json';
+      };
 
-PhonicsApp
-  .directive('schemaModel', function ($parse) {
-    return {
-      templateUrl: 'templates/schema-model.html',
-      restrict: 'E',
-      replace: true,
-      scope: {
-        schema: '='
-      },
-      link: function postLink($scope, $element, $attributes) {
-        $scope.mode = 'model';
-        $scope.json = removeVendorExtensions(
-          $parse($attributes.schema)($scope.$parent)
-        );
+      $scope.$watch('schema', render);
+
+      render();
+
+      function render() {
+        var formatter = new JSONFormatter($scope.schema, 1);
+        $element.find('td.view.json').html(formatter.render());
+
+        var schemaView = new JSONSchemaView($scope.schema, 1);
+        $element.find('td.view.schema').html(schemaView.render());
       }
-    };
-  });
+    }
+  };
+});

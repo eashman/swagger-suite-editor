@@ -1,18 +1,39 @@
 'use strict';
 
-PhonicsApp.service('Editor', function Editor(Autocomplete, ASTManager) {
+SwaggerEditor.service('Editor', function Editor(Autocomplete, ASTManager,
+  LocalStorage, defaults, $interval) {
   var editor = null;
-  var onReadyFns = [];
-  var changeFoldFns = [];
+  var onReadyFns = new Set();
+  var changeFoldFns = new Set();
   var that = this;
+  var editorOptions = defaults.editorOptions || {};
+  var defaultTheme = editorOptions.theme || 'ace/theme/atom_dark';
 
   function annotateYAMLErrors(error) {
-    if (error && error.mark && error.reason) {
+    if (editor && error && error.mark && error.reason) {
       editor.getSession().setAnnotations([{
         row: error.mark.line,
         column: error.mark.column,
         text: error.reason,
         type: 'error'
+      }]);
+    }
+  }
+
+  function annotateSwaggerError(error, type) {
+    var row = 0;
+    var column = 0;
+
+    if (false && editor && error.path) {
+      if (error.path.length) {
+        // TODO: ASTManager
+        row = ASTManager.lineForPath(_.cloneDeep(error.path));
+      }
+      editor.getSession().setAnnotations([{
+        row: row,
+        column: column,
+        text: error.message,
+        type: type || 'error'
       }]);
     }
   }
@@ -36,15 +57,13 @@ PhonicsApp.service('Editor', function Editor(Autocomplete, ASTManager) {
       enableLiveAutocompletion: true,
       enableSnippets: true
     });
-
-    ASTManager.refresh(editor.getValue());
-    onFoldChanged(ASTManager.onFoldChanged);
+    loadEditorSettings();
 
     // Editor is ready, fire the on-ready function and flush the queue
     onReadyFns.forEach(function (fn) {
       fn(that);
     });
-    onReadyFns = [];
+    onReadyFns = new Set();
 
     var session = editor.getSession();
 
@@ -54,10 +73,24 @@ PhonicsApp.service('Editor', function Editor(Autocomplete, ASTManager) {
     configureSession(session);
   }
 
-  function onChangeFold() {
-    var args = arguments;
+  function saveEditorSettings() {
+    if (editor) {
+      LocalStorage.save('editor-settings', editor.getOptions());
+    }
+  }
+
+  function loadEditorSettings() {
+    if (editor) {
+      LocalStorage.load('editor-settings').then(function (options) {
+        options = options || {theme: defaultTheme};
+        editor.setOptions(options);
+      });
+    }
+  }
+
+  function onChangeFold(event) {
     changeFoldFns.forEach(function (fn) {
-      fn.apply(editor, args);
+      fn.call(null, event);
     });
   }
 
@@ -65,30 +98,9 @@ PhonicsApp.service('Editor', function Editor(Autocomplete, ASTManager) {
     session.setTabSize(2);
   }
 
-  function setValue(value) {
-    if (angular.isString(value) && editor) {
-      editor.getSession().setValue(value);
-    }
-
-    // If it's an object, convert it YAML
-    if (angular.isObject(value)) {
-      setValue(jsyaml.dump(angular.copy(value)));
-    }
-  }
-
-  function getValue() {
-    if (editor) {
-      return editor.getSession().getValue();
-    }
-  }
-
-  function resize() {
-    editor.resize();
-  }
-
   function ready(fn) {
     if (angular.isFunction(fn)) {
-      onReadyFns.push(fn);
+      onReadyFns.add(fn);
     }
   }
 
@@ -107,7 +119,9 @@ PhonicsApp.service('Editor', function Editor(Autocomplete, ASTManager) {
   }
 
   function onFoldChanged(fn) {
-    changeFoldFns.push(fn);
+    if (_.isFunction(fn)) {
+      changeFoldFns.add(fn);
+    }
   }
 
   function addFold(start, end) {
@@ -116,12 +130,9 @@ PhonicsApp.service('Editor', function Editor(Autocomplete, ASTManager) {
     }
   }
 
-  function removeFold(start) {
-    // TODO: Depth of unfolding is hard-coded to 100 but we need
-    // to have depth as a parameter and/or having smarter way of
-    // handling subfolds
+  function removeFold(start, end) {
     if (editor) {
-      editor.getSession().unfold(start, 100);
+      editor.getSession().unfold(editor.getSession().getFoldAt(start, end));
     }
   }
 
@@ -136,12 +147,52 @@ PhonicsApp.service('Editor', function Editor(Autocomplete, ASTManager) {
     return editor.getCursorPosition().row;
   }
 
-  this.getValue = getValue;
-  this.setValue = setValue;
+  function showSettings() {
+    ace.config.loadModule('ace/ext/settings_menu', function (module) {
+      module.init(editor);
+      editor.showSettingsMenu();
+
+      // Crazy hack to get around Ace not notifying us when settings changes
+      // Related bug in Ace:
+      // https://github.com/ajaxorg/ace/issues/2250
+      var checkInterval = $interval(function () {
+        if ($('#ace_settingsmenu').length === 0) {
+          saveEditorSettings();
+          $interval.cancel(checkInterval);
+          checkInterval = undefined;
+        }
+      }, 300);
+    });
+  }
+
+  function resetSettings() {
+    if (window.confirm('Are you sure?') && editor) {
+      editor.setOptions(editorOptions);
+      saveEditorSettings();
+    }
+  }
+
+  function adjustFontSize(by) {
+    if (editor) {
+      var fontSize = parseInt(editor.getOption('fontSize'), 10);
+      editor.setOption('fontSize', fontSize + by);
+      saveEditorSettings();
+    }
+  }
+
+  /*
+   * Focus editor to enable it for typing
+  */
+  function focus() {
+    if (editor) {
+      editor.focus();
+    }
+  }
+
   this.aceLoaded = aceLoaded;
-  this.resize = resize;
   this.ready = ready;
   this.annotateYAMLErrors = annotateYAMLErrors;
+  this.annotateSwaggerError = annotateSwaggerError;
   this.clearAnnotation = clearAnnotation;
   this.getAllFolds = getAllFolds;
   this.getLine = getLine;
@@ -150,4 +201,9 @@ PhonicsApp.service('Editor', function Editor(Autocomplete, ASTManager) {
   this.removeFold = removeFold;
   this.gotoLine = gotoLine;
   this.lineInFocus = lineInFocus;
+  this.showSettings = showSettings;
+  this.saveEditorSettings = saveEditorSettings;
+  this.adjustFontSize = adjustFontSize;
+  this.resetSettings = resetSettings;
+  this.focus = focus;
 });

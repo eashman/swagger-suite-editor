@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
   dist: {
     files: [{
@@ -5,7 +7,7 @@ module.exports = {
       src: [
         '.tmp',
         'dist/*',
-        '!dist/.git*'
+        'app/app/embedded-docs.html'
       ]
     }]
   },

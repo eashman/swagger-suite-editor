@@ -12,7 +12,7 @@ module.exports = function (grunt) {
 
     grunt.task.run([
       'clean:server',
-      'bowerInstall',
+      'wiredep',
       'less:server',
       'autoprefixer',
       'connect:livereload',
@@ -25,13 +25,30 @@ module.exports = function (grunt) {
     'less',
     'autoprefixer',
     'connect:test',
-    // 'karma' // TODO
+    'jshint',
+    'jscs',
+    'karma:unit',
+    'protr'
+  ]);
+
+  grunt.registerTask('protr', 'Runs end-to-end tests.', [
     'http-server',
     'protractor'
   ]);
 
+  grunt.registerTask('test-dev',
+    'Develop unit tests. Continuously runs tests and watches for changes',
+    [
+      'jshint:test',
+      'jscs:test',
+      'karma:main',
+      'watch:jsTest'
+    ]
+  );
+
   grunt.registerTask('build', [
     'clean:dist',
+    'wiredep',
     'useminPrepare',
     'less',
     'concurrent:dist',
@@ -41,7 +58,6 @@ module.exports = function (grunt) {
     'copy:dist',
     'cssmin',
     'uglify',
-    'rev',
     'usemin',
     'htmlmin'
   ]);
@@ -55,16 +71,6 @@ module.exports = function (grunt) {
   grunt.registerTask('ship', [
     'build',
     'gh-pages',
-    'shell:publish-npm',
-    'a127',
-    'shell:publish-npm-src',
-    'shell:squash'
-  ]);
-
-  grunt.registerTask('a127', [
-    'shell:replace-defaults-a127',
-    'build',
-    'shell:a127-restore-defaults',
-    'shell:publish-npm-a127'
+    'shell:publish'
   ]);
 };

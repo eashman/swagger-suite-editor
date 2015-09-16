@@ -1,22 +1,27 @@
 'use strict';
 
-describe('Controller: ErrorpresenterCtrl', function () {
+describe('Controller: ErrorPresenterCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('koknusApp'));
+  beforeEach(window.angular.mock.module('SwaggerEditor'));
 
-  var ErrorpresenterCtrl,
+  var ErrorPresenterCtrl,
     scope;
 
   // Initialize the controller and a mock scope
   beforeEach(inject(function ($controller, $rootScope) {
     scope = $rootScope.$new();
-    ErrorpresenterCtrl = $controller('ErrorpresenterCtrl', {
-      $scope: scope
+    var rootScope = $rootScope.$new();
+    rootScope.warnings = [];
+    rootScope.errors = [];
+
+    ErrorPresenterCtrl = $controller('ErrorPresenterCtrl', {
+      $scope: scope,
+      $rootScope: rootScope
     });
   }));
 
-  it('should attach a list of awesomeThings to the scope', function () {
-    expect(scope.awesomeThings.length).toBe(3);
+  it('should have a scope', function () {
+    expect(!!scope).to.equal(true);
   });
 });

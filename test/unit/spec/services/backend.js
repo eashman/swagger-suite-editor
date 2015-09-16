@@ -3,7 +3,7 @@
 describe('Service: Backend', function () {
 
   // load the service's module
-  beforeEach(module('phonicsApp'));
+  beforeEach(window.angular.mock.module('SwaggerEditor'));
 
   // instantiate service
   var Backend;
@@ -11,8 +11,8 @@ describe('Service: Backend', function () {
     Backend = _Backend_;
   }));
 
-  it('should do something', function () {
-    expect(!!Backend).toBe(true);
+  it('should exists', function () {
+    expect(!!Backend).to.equal(true);
   });
 
 });

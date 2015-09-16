@@ -1,27 +1,70 @@
 'use strict';
 
-PhonicsApp.controller('ErrorPresenterCtrl', function ($scope) {
-  $scope.docsMode = false;
+SwaggerEditor.controller('ErrorPresenterCtrl', function ErrorPresenterCtrl(
+  $scope, $rootScope, Editor, ASTManager) {
+  var ERROR_LEVEL = 900;
+  var WARNING_LEVEL = 500;
 
-  $scope.getError = function () {
-    var error = $scope.$parent.error;
+  $scope.isCollapsed = false;
 
-    // Don't show empty doc error in editor mode
-    if (error && error.emptyDocsError && !$scope.docsMode) {
-      return null;
-    }
+  $scope.getErrorsAndWarnings = getErrorsAndWarnings;
 
-    return error;
-  };
+  $scope.errorsAndWarnings = [];
 
-  $scope.getType = function () {
-    var error = $scope.getError();
+  $rootScope.$watch('errors', assignErrorsAndWarnings);
+  $rootScope.$watch('warnings', assignErrorsAndWarnings);
 
-    if (error.swaggerError && error.swaggerError.errors.length) {
-      return 'Swagger Error';
-    }
+  assignErrorsAndWarnings();
 
-    if (error.swaggerError && !error.swaggerError.errors.length) {
+  /*
+   * Assigns errorsAndWarnings to scope
+   *
+  */
+  function assignErrorsAndWarnings() {
+    getErrorsAndWarnings().then(function (errorsAndWarnings) {
+      $scope.$apply(function () {
+        $scope.errorsAndWarnings = errorsAndWarnings;
+      });
+    });
+  }
+
+  /*
+   * Concatenate and modifies errors and warnings array to make it suitable for
+   * Error Presenter
+   * @returns {Promsise<array>}
+  */
+  function getErrorsAndWarnings() {
+    var errorsAndWarnings = $rootScope.errors.map(function (error) {
+      error.level = ERROR_LEVEL;
+      return error;
+    })
+
+    .concat($rootScope.warnings.map(function (warning) {
+      warning.level = WARNING_LEVEL;
+      return warning;
+    }))
+
+    .map(function (error) {
+      error.type = getType(error);
+      error.description = getDescription(error);
+      return error;
+    });
+
+    // Get error line number for each error and assign it to the error object
+    return Promise.all(errorsAndWarnings.map(assignLineNumber));
+  }
+
+  /**
+   * Gets type description of an error object
+   * @param {object} error
+   * @returns {string}
+  */
+  function getType(error) {
+
+    if (error.code && error.message && error.path) {
+      if (error.level > 500) {
+        return 'Swagger Error';
+      }
       return 'Swagger Warning';
     }
 
@@ -29,41 +72,34 @@ PhonicsApp.controller('ErrorPresenterCtrl', function ($scope) {
       return 'YAML Syntax Error';
     }
 
-    if (error.resolveError) {
-      return 'Resolve Error';
-    }
-
     if (error.emptyDocsError) {
       return 'Empty Document Error';
     }
 
     return 'Unknown Error';
-  };
-
-  function stringifySwaggerErrors(errors) {
-    return errors.map(function (error) {
-      return [
-        error.message,
-        'at ' + error.path.join(' ▹ ')
-      ].join('\n');
-    }).join('\n\n');
   }
 
-  $scope.getDescription = function () {
-    var error = $scope.getError();
+  /**
+   * Gets description of an error object
+   * @param {object} error
+   * @returns {string}
+  */
+  function getDescription(error) {
 
-    if (error.emptyDocsError) {
-      return error.emptyDocsError.message;
+    if (_.isString(error.description)) {
+      return error.description;
     }
 
-    if (error.swaggerError) {
-      if (error.swaggerError.errors.length) {
-        return stringifySwaggerErrors(error.swaggerError.errors);
-      }
+    if (_.isString(error.message)) {
 
-      if (error.swaggerError.warnings.length) {
-        return stringifySwaggerErrors(error.swaggerError.warnings);
+      if (_.isString(error.description)) {
+        return error.message + '<br>' + error.description;
       }
+      return error.message;
+    }
+
+    if (error.emptyDocsError) {
+      return error.emptyDocsError;
     }
 
     if (error.yamlError) {
@@ -78,29 +114,75 @@ PhonicsApp.controller('ErrorPresenterCtrl', function ($scope) {
     }
 
     return error;
+  }
+
+  /*
+   * Determines if all errors are in warning level
+   * @param {object} error
+   * @returns {boolean}
+   *
+  */
+  $scope.isOnlyWarnings = function (errors) {
+    return !errors.some(function (error) {
+      return !error || error.level > WARNING_LEVEL;
+    });
   };
 
-  $scope.getErrorLevel = function () {
-    var error = $scope.getError();
-
-    if (error.swaggerError && !error.swaggerError.errors.length) {
-      return 'warning';
+  /**
+   * Gets the line number for an error object
+   *
+   * @param {object} error
+   * @returns {nubmer|Promise<number>}
+  */
+  function assignLineNumber(error) {
+    if (error.yamlError) {
+      return new Promise(function (resolve) {
+        error.lineNumber = error.yamlError.mark.line;
+        resolve(error);
+      });
     }
 
-    return 'error';
-  };
+    if (_.isArray(error.path)) {
+      var value = $rootScope.editorValue;
+      var path = _.clone(error.path);
 
-  $scope.getLineNumber = function () {
-    var error = $scope.getError();
-
-    if (error && error.yamlError) {
-      return error.yamlError.mark.line;
+      return ASTManager.positionRangeForPath(value, path)
+        .then(function (range) {
+          error.lineNumber = range.start.line;
+          return error;
+        });
     }
 
-    return -1;
+    return error;
+  }
+
+  /**
+   * Focuses Ace editor to the line number of error
+   * @param {object} error
+   *
+  */
+  $scope.goToLineOfError = function (error) {
+    if (error) {
+      Editor.gotoLine(error.lineNumber);
+      Editor.focus();
+    }
   };
 
-  $scope.showLineJumpLink = function () {
-    return $scope.getLineNumber() !== -1;
+  /*
+   * Determines if an error is in warning level
+   *
+   * @param {object} error
+   * @returns {boolean}
+  */
+  $scope.isWarning = function (error) {
+    return error && error.level < ERROR_LEVEL;
+  };
+
+  /*
+   * Toggle the collapsed state of the modal
+   *
+  */
+  $scope.toggleCollapse = function () {
+    $scope.isCollapsed = !$scope.isCollapsed;
   };
 });

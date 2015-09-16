@@ -3,7 +3,7 @@
 describe('Service: Builder', function () {
 
   // load the service's module
-  beforeEach(module('koknusApp'));
+  beforeEach(window.angular.mock.module('SwaggerEditor'));
 
   // instantiate service
   var Builder;
@@ -11,8 +11,8 @@ describe('Service: Builder', function () {
     Builder = _Builder_;
   }));
 
-  it('should do something', function () {
-    expect(!!Builder).toBe(true);
+  it('should exists', function () {
+    expect(!!Builder).to.equal(true);
   });
 
 });

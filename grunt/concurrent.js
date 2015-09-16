@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
   server: [
     'copy:styles'
@@ -7,8 +9,6 @@ module.exports = {
   ],
   dist: [
     'copy:ace',
-    'copy:styles',
-    'imagemin',
-    'svgmin'
+    'copy:styles'
   ]
 };

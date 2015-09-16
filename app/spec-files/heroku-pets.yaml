@@ -2,14 +2,40 @@ swagger: '2.0'
 info:
   version: 1.0.0
   title: PetStore on Heroku
+  description: |
+    **This example has a working backend hosted in Heroku**
+
+    You can try all HTTP operation described in this Swagger spec.
 host: petstore-api.herokuapp.com
 basePath: /pet
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+  - text/xml
+produces:
+  - application/json
+  - text/html
 paths:
   /:
     get:
+      parameters:
+        - name: limit
+          in: query
+          description: number of pets to return
+          type: integer
+          default: 11
+          minimum: 11
+          maximum: 10000
       responses:
         200:
           description:  List all pets
+          schema:
+            title: Pets
+            type: array
+            items:
+              $ref: '#/definitions/Pet'
     post:
       parameters:
         - name: pet
@@ -37,6 +63,7 @@ paths:
       parameters:
         - name: petId
           in: path
+          type: string
           description: ID of the pet
           required: true
       responses:
@@ -45,6 +72,7 @@ paths:
 
 definitions:
   Pet:
+    type: object
     properties:
       name:
         type: string

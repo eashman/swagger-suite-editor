@@ -1,7 +1,19 @@
+'use strict';
+
 module.exports = {
-  src: 'app/scripts/**/*.js',
-  options: {
-    config: '.jscsrc',
-    requireCurlyBraces: [ 'if' ]
+  main: {
+    src: 'app/scripts/**/*.js',
+    options: {
+      config: '.jscsrc',
+      requireCurlyBraces: [ 'if' ]
+    }
+  },
+
+  test: {
+    src: 'test/**/*.js',
+    options: {
+      config: 'test/.jscsrc',
+      requireCurlyBraces: [ 'if' ]
+    }
   }
 };
